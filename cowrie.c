@@ -16,6 +16,8 @@
 
 
 // PUT EXTRA `#include'S HERE
+#include <spawn.h>
+#include <sys/wait.h>
 
 
 #define MAX_LINE_CHARS 1024
@@ -128,6 +130,23 @@ static void execute_command(char **words, char **path, char **environment) {
         return;
     }
 
+    /*if (strcmp(program, "history") == 0) {
+        char buff[200];
+        char *curr_dir = getcwd(buff, 200);
+        
+        // char * cur_dir = get_current_dir_name(void);
+        printf("current directory is '%s'\n", curr_dir);
+        return;
+    }*/
+    /*if (strcmp(program, "!") == 0) {
+        char buff[200];
+        char *curr_dir = getcwd(buff, 200);
+        
+        // char * cur_dir = get_current_dir_name(void);
+        printf("current directory is '%s'\n", curr_dir);
+        return;
+    }*/
+   
     //////dont forget error messages ///////
     ////////////////////////////////////////
 
@@ -137,12 +156,31 @@ static void execute_command(char **words, char **path, char **environment) {
 
     if (strrchr(program, '/') == NULL) { // this executes if there is no "/" found ie, we gota make the path
         fprintf(stderr, "you dawg, u gave me a file, i want its pathname \n");
+        
+        //char *path_dirrec_1 = path[0]; //idk why we need this , cant you just fopen diary
+        //char *prog_name_1 = words[1];
+        //char pathname[200];
+        //snprintf(pathname, sizeof pathname,"%s/%s",path_dirrec_1,prog_name_1 );
+        
+        //contruct pathname
+        //call is_executeable
+        //posix_spawn(&pid, "/bin/date", NULL, NULL, date_argv, environ)
     }
     //basically with the path** variable, you while through it like path[0], path[1] and each time you append the word* to it then is exectuable it to see if it works
     //if it already has a / in the name, you can just strait run the program
-
+    pid_t pid;
     if (is_executable(program)) { //this just checks if it is
-        fprintf(stderr, "RUNNING PROGRAM UNIMPLEMENTED\n");
+       posix_spawn(&pid, program , NULL, NULL, words, environment);
+
+        int exit_status;
+        if (waitpid(pid, &exit_status, 0) == -1) {
+            perror("waitpid");
+            return;
+        }   
+
+        printf("%s exit status = %d\n",program, exit_status);
+        
+
     } else {
         fprintf(stderr, "CHANGE ME TO AN ERROR MESSAGE\n");
     }
