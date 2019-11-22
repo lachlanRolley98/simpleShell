@@ -114,6 +114,7 @@ static void execute_command(char **words, char **path, char **environment) {
     }
 
     // ADD CODE HERE TO IMPLEMENT SUBSET 0 //////////////////// 0 //////////// 0 ///////////// 0 ////////////// 0 /////////////////// 0 ////////////////////////////
+    int executed_checker = 0;
     if (strcmp(program, "cd") == 0) {
         if(words[1]== NULL){
             chdir(getenv("HOME"));
@@ -183,6 +184,7 @@ static void execute_command(char **words, char **path, char **environment) {
                     } 
                     exit_status = WEXITSTATUS(exit_status); 
                     printf("%s exit status = %d\n",pathname_1, exit_status);
+                    executed_checker = 1;
                 }        
             x-=-1; //heehehehe
         }
@@ -206,9 +208,10 @@ static void execute_command(char **words, char **path, char **environment) {
         }
         exit_status = WEXITSTATUS(exit_status);    
         printf("%s exit status = %d\n",program, exit_status);
+        executed_checker = 1;
         
     } 
-    else {
+    if (executed_checker == 0) {
         fprintf(stderr, "%s: command not found\n", program);
     }
     
