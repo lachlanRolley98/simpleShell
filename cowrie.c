@@ -118,7 +118,17 @@ static void execute_command(char **words, char **path, char **environment) {
         if(words[1]== NULL){
             chdir(getenv("HOME"));
         }
-        else chdir(words[1]);
+        //int a = 2;
+        if(words[1] != NULL){
+           if(chdir(words[1]) != 0){
+                //printf("cd: %s: No such file or dirrectory\n",words[1]);
+                fprintf(stderr, "cd: %s: No such file or directory\n", words[1]);
+           }    
+        }
+        /*if(a != 0){
+            printf("%s : is not a valid dirrectory",words[1]);
+        }
+        */
         return;
     }
     if (strcmp(program, "pwd") == 0) {
