@@ -155,12 +155,29 @@ static void execute_command(char **words, char **path, char **environment) {
     // CHANGE CODE BELOW HERE TO IMPLEMENT SUBSET 1 ///////////////// 1 //////////// 1 ////////////// 1 ////////////// 1 /////////////// 1 ///////////////////////  
 
     if (strrchr(program, '/') == NULL) { // this executes if there is no "/" found ie, we gota make the path
-        fprintf(stderr, "you dawg, u gave me a file, i want its pathname \n");
         
-        //char *path_dirrec_1 = path[0]; //idk why we need this , cant you just fopen diary
-        //char *prog_name_1 = words[1];
-        //char pathname[200];
-        //snprintf(pathname, sizeof pathname,"%s/%s",path_dirrec_1,prog_name_1 );
+        int x = 0;
+        while (path[x] != NULL){
+            char *path_dirrec_1 = path[x]; //idk why we need this , cant you just fopen diary
+            char *prog_name_1 = words[0];
+            char pathname_1[200];
+            snprintf(pathname_1, sizeof pathname_1,"%s/%s",path_dirrec_1,prog_name_1 ); // here we got a possiblie pathname that we gota check 
+            //printf("pathname has %s\n",pathname_1); 
+                if (is_executable(pathname_1)) { //this just checks if it is
+                    pid_t pid;
+                    posix_spawn(&pid, pathname_1 , NULL, NULL, words, environment); //probs gota change words here
+                    int exit_status;
+                    if (waitpid(pid, &exit_status, 0) == -1) {
+                        perror("waitpid");
+                        return;
+                    } 
+                    exit_status = WEXITSTATUS(exit_status); 
+                    printf("%s exit status = %d\n",pathname_1, exit_status);
+                }        
+            x-=-1; //heehehehe
+        }
+        
+        
         
         //contruct pathname
         //call is_executeable
@@ -168,23 +185,23 @@ static void execute_command(char **words, char **path, char **environment) {
     }
     //basically with the path** variable, you while through it like path[0], path[1] and each time you append the word* to it then is exectuable it to see if it works
     //if it already has a / in the name, you can just strait run the program
-    pid_t pid;
+    
     if (is_executable(program)) { //this just checks if it is
-       posix_spawn(&pid, program , NULL, NULL, words, environment);
-
+        pid_t pid;
+        posix_spawn(&pid, program , NULL, NULL, words, environment);
         int exit_status;
         if (waitpid(pid, &exit_status, 0) == -1) {
             perror("waitpid");
             return;
-        }   
-
+        }
+        exit_status = WEXITSTATUS(exit_status);    
         printf("%s exit status = %d\n",program, exit_status);
         
-
-    } else {
-        fprintf(stderr, "CHANGE ME TO AN ERROR MESSAGE\n");
+    } 
+    else {
+        fprintf(stderr, "%s: command not found\n", program);
     }
-    //gota do the thing to run it
+    
 }
 
 
