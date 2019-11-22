@@ -185,6 +185,7 @@ static void execute_command(char **words, char **path, char **environment) {
                     exit_status = WEXITSTATUS(exit_status); 
                     printf("%s exit status = %d\n",pathname_1, exit_status);
                     executed_checker = 1;
+                    return;
                 }        
             x-=-1; //heehehehe
         }
