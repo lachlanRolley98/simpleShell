@@ -42,6 +42,7 @@ static void free_tokens(char **tokens);
 
 // PUT EXTRA FUNCTION PROTOTYPES HERE
 void append_to_history(char **words);
+void print_history(int lines);
 
 int main(void) {
     //ensure stdout is line-buffered during autotesting
@@ -139,9 +140,11 @@ static void execute_command(char **words, char **path, char **environment) {
         return;
     }
 
-    //if (strcmp(program, "history") == 0) {
-        
-    //}
+    if (strcmp(program, "history") == 0) {
+        int lines = 3;
+        print_history(lines);
+        executed_checker = 1;
+    }
     /*if (strcmp(program, "!") == 0) {
         char buff[200];
         char *curr_dir = getcwd(buff, 200);
@@ -221,7 +224,7 @@ void append_to_history(char **words){
     char *value = getenv("HOME");  
     char pathname[100];
     snprintf(pathname, sizeof pathname,"%s/%s",value,".cowrie_history" );
-    //printf("this is the pathname of this history thing %s\n",pathname);
+    printf("this is the pathname of this history thing %s\n",pathname);
     FILE *fd = fopen(pathname,"a");
     
     int x = 0;
@@ -236,6 +239,47 @@ void append_to_history(char **words){
     fputs("\n",fd);
     fclose(fd);
 }
+void print_history(int lines){ //lines will be n
+    //printf("we got into the print history function\n");
+    char *value = getenv("HOME");  
+    char pathname[100];
+    snprintf(pathname, sizeof pathname,"%s/%s",value,".cowrie_history" );
+    FILE *fd = fopen(pathname,"r");
+    //gota run through all history lines to see where the bottom is, then start priniting from bottom - in in a second while loop
+
+    //find bottom
+    int total_lines = 0; 
+    char str[256];
+    while ((fgets(str, 256, fd)) != NULL){
+       // printf("we reading lines\n"); ////
+        total_lines++;
+    }
+    //printf("total_lines is %d\n",total_lines); /////
+    
+    //int a = fseek(fd, 0, 1);
+    //printf("return val of seek was %d\n",a);
+    fclose(fd);
+    fd = fopen(pathname,"r");
+    //once here we will have the total number of lines in x, so basically write a while loop that keeps fgetsing but only fputs when inside right amount
+    int first_print_line = total_lines - lines;
+    int x = 0;
+    //printf("first_print_line is %d\n",first_print_line); /////
+    
+    while ((fgets(str, 256, fd)) != NULL){
+        //printf("we in the second while\n"); /////
+        if(x >= first_print_line){
+            printf("%d: ",x);
+            fputs(str, stdout);
+            //printf("\n");
+        }
+        x++;
+    } 
+
+    fclose(fd);
+}
+
+
+
 
 //
 // Implement the `exit' shell built-in, which exits the shell.
