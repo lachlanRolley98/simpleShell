@@ -141,7 +141,10 @@ static void execute_command(char **words, char **path, char **environment) {
     }
 
     if (strcmp(program, "history") == 0) {
-        int lines = 3;
+        int lines = 10;
+        if(words[1]!= NULL){
+            lines = atoi(words[1]);
+        }
         print_history(lines);
         executed_checker = 1;
     }
@@ -224,7 +227,7 @@ void append_to_history(char **words){
     char *value = getenv("HOME");  
     char pathname[100];
     snprintf(pathname, sizeof pathname,"%s/%s",value,".cowrie_history" );
-    printf("this is the pathname of this history thing %s\n",pathname);
+    //printf("this is the pathname of this history thing %s\n",pathname);
     FILE *fd = fopen(pathname,"a");
     
     int x = 0;
