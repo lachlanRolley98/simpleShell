@@ -41,7 +41,7 @@ static void free_tokens(char **tokens);
 
 
 // PUT EXTRA FUNCTION PROTOTYPES HERE
-
+void append_to_history(char **words);
 
 int main(void) {
     //ensure stdout is line-buffered during autotesting
@@ -109,6 +109,7 @@ static void execute_command(char **words, char **path, char **environment) {
 
     if (strcmp(program, "exit") == 0) {
         do_exit(words);
+        append_to_history(words);
         // do_exit will only return if there is an error
         return;
     }
@@ -119,17 +120,13 @@ static void execute_command(char **words, char **path, char **environment) {
         if(words[1]== NULL){
             chdir(getenv("HOME"));
         }
-        //int a = 2;
         if(words[1] != NULL){
            if(chdir(words[1]) != 0){
                 //printf("cd: %s: No such file or dirrectory\n",words[1]);
                 fprintf(stderr, "cd: %s: No such file or directory\n", words[1]);
            }    
         }
-        /*if(a != 0){
-            printf("%s : is not a valid dirrectory",words[1]);
-        }
-        */
+        append_to_history(words);
         return;
     }
     if (strcmp(program, "pwd") == 0) {
@@ -138,17 +135,13 @@ static void execute_command(char **words, char **path, char **environment) {
         
         // char * cur_dir = get_current_dir_name(void);
         printf("current directory is '%s'\n", curr_dir);
+        append_to_history(words);
         return;
     }
 
-    /*if (strcmp(program, "history") == 0) {
-        char buff[200];
-        char *curr_dir = getcwd(buff, 200);
+    //if (strcmp(program, "history") == 0) {
         
-        // char * cur_dir = get_current_dir_name(void);
-        printf("current directory is '%s'\n", curr_dir);
-        return;
-    }*/
+    //}
     /*if (strcmp(program, "!") == 0) {
         char buff[200];
         char *curr_dir = getcwd(buff, 200);
@@ -185,6 +178,7 @@ static void execute_command(char **words, char **path, char **environment) {
                     exit_status = WEXITSTATUS(exit_status); 
                     printf("%s exit status = %d\n",pathname_1, exit_status);
                     executed_checker = 1;
+                    append_to_history(words);
                     return;
                 }        
             x-=-1; //heehehehe
@@ -210,17 +204,38 @@ static void execute_command(char **words, char **path, char **environment) {
         exit_status = WEXITSTATUS(exit_status);    
         printf("%s exit status = %d\n",program, exit_status);
         executed_checker = 1;
+        append_to_history(words);
         
     } 
     if (executed_checker == 0) {
         fprintf(stderr, "%s: command not found\n", program);
+        append_to_history(words);
     }
     
 }
 
 
 // PUT EXTRA FUNCTIONS HERE
+void append_to_history(char **words){
 
+    char *value = getenv("HOME");  
+    char pathname[100];
+    snprintf(pathname, sizeof pathname,"%s/%s",value,".cowrie_history" );
+    //printf("this is the pathname of this history thing %s\n",pathname);
+    FILE *fd = fopen(pathname,"a");
+    
+    int x = 0;
+    while(words[x] != NULL){
+
+        fputs(words[x],fd);
+        fputs(" ",fd);
+        x-=-1;
+
+
+    }
+    fputs("\n",fd);
+    fclose(fd);
+}
 
 //
 // Implement the `exit' shell built-in, which exits the shell.
