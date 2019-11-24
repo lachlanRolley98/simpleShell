@@ -44,6 +44,7 @@ static void free_tokens(char **tokens);
 void append_to_history(char **words);
 void print_history(int lines);
 
+
 int main(void) {
     //ensure stdout is line-buffered during autotesting
     setlinebuf(stdout);
@@ -102,7 +103,7 @@ static void execute_command(char **words, char **path, char **environment) {
     assert(environment != NULL);
 
     char *program = words[0];
-
+   
     if (program == NULL) {
         // nothing to do
         return;
@@ -139,7 +140,7 @@ static void execute_command(char **words, char **path, char **environment) {
         append_to_history(words);
         return;
     }
-
+    // 2 /////////////// 2 ///////// 2 /////////////// 2 ///////// 2 /////////////// 2 ///////// 2 /////////////// 2 ///////// 2 /////////////// 2 //////////////
     if (strcmp(program, "history") == 0) {
         int lines = 10;
         if(words[1]!= NULL){
@@ -148,14 +149,73 @@ static void execute_command(char **words, char **path, char **environment) {
         print_history(lines);
         executed_checker = 1;
     }
-    /*if (strcmp(program, "!") == 0) {
-        char buff[200];
-        char *curr_dir = getcwd(buff, 200);
+    if (strcmp(program, "!") == 0) {
+        //printf("we in ! thing\n");
+        int y = atoi(words[1]);
+
+        char *value = getenv("HOME");  
+        char pathname[100];
+        snprintf(pathname, sizeof pathname,"%s/%s",value,".cowrie_history" );
+        FILE *fd = fopen(pathname,"r");
+        //gota run through all history lines to see where specific history line is
+
+    
+        int x = 0; 
+        char specific_history_line[256];
+        while (((fgets(specific_history_line, 256, fd)) != NULL) && x < y){
+            x++;
+        }
+
+        //we got the program in specific_history_line
+        printf("%s", specific_history_line); //gota print this shit out
+        char **command_words_history = tokenize(specific_history_line, WORD_SEPARATORS, SPECIAL_CHARS); //this is basically words for the history line
+        char *history_program = command_words_history[0];
+        //printf("history_program is is: %s\n", history_program);
+        //printf("normal program is %s\n",program);
         
-        // char * cur_dir = get_current_dir_name(void);
-        printf("current directory is '%s'\n", curr_dir);
-        return;
-    }*/
+        if (strrchr(history_program, '/') == NULL) { // this executes if there is no "/" found ie, we gota make the path
+            //printf("we went throught here\n");
+            int xo = 0; 
+            while (path[xo] != NULL){
+                char *path_dirrec_1 = path[xo]; //idk why we need this , cant you just fopen diary
+                char *prog_name_1 = history_program;
+                char pathname_1[200];
+                snprintf(pathname_1, sizeof pathname_1,"%s/%s",path_dirrec_1,prog_name_1 ); // here we got a possiblie pathname that we gota check 
+                //printf("pathname has %s\n",pathname_1); 
+                    if (is_executable(pathname_1)) { //this just checks if it is
+                        pid_t pid;
+                        posix_spawn(&pid, pathname_1 , NULL, NULL, command_words_history, environment); //probs gota change words here
+                        int exit_status;
+                        if (waitpid(pid, &exit_status, 0) == -1) {
+                            perror("waitpid");
+                            return;
+                        } 
+                        exit_status = WEXITSTATUS(exit_status); 
+                        printf("%s exit status = %d\n",pathname_1, exit_status);
+                        executed_checker = 1;                       
+                        return;
+                    }        
+                xo-=-1; //heehehehe
+            }    
+        }
+        if (is_executable(history_program)) {
+            //run the program
+            //printf("%s\n",history_program);
+            pid_t pid;
+            posix_spawn(&pid, history_program , NULL, NULL, command_words_history, environment);
+            int exit_status;
+            if (waitpid(pid, &exit_status, 0) == -1) {
+                perror("waitpid");
+                return;
+            }
+            exit_status = WEXITSTATUS(exit_status);    
+            printf("%s exit status = %d\n",history_program, exit_status);
+            executed_checker = 1;
+        
+        }
+        
+        
+    }
    
     //////dont forget error messages ///////
     ////////////////////////////////////////
@@ -227,7 +287,7 @@ void append_to_history(char **words){
     char *value = getenv("HOME");  
     char pathname[100];
     snprintf(pathname, sizeof pathname,"%s/%s",value,".cowrie_history" );
-    //printf("this is the pathname of this history thing %s\n",pathname);
+    //printf("this is the pathname of this history thing %s\n",pathname); //x/x/x/x/x/xx/x/x/ is rm -f /import/ravel/4/z5162440/.cowrie_history
     FILE *fd = fopen(pathname,"a");
     
     int x = 0;
@@ -321,6 +381,7 @@ static int is_executable(char *pathname) {
     struct stat s;
     return
         // does the file exist?
+        //printf("beep boop\n");        //x/x/x/x/x/x/xx//x/x/x/x/x/x/x/x
         stat(pathname, &s) == 0 &&
         // is the file a regular file?
         S_ISREG(s.st_mode) &&
