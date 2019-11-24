@@ -145,14 +145,43 @@ static void execute_command(char **words, char **path, char **environment) {
         int lines = 10;
         if(words[1]!= NULL){
             lines = atoi(words[1]);
+            if(lines == 0){
+                //printf("%s: ",program);
+                fprintf(stderr, "%s: %s: numeric argument required\n",program, words[1]);
+                //probs should also check they didnt make a number to big
+                return;
+            }
+            if(words[2]!= NULL){          
+                fprintf(stderr, "%s: too many arguments\n",program); 
+                return;                        
+            }
         }
+        
+        
         print_history(lines);
         executed_checker = 1;
+        append_to_history(words);
     }
     if (strcmp(program, "!") == 0) {
         //printf("we in ! thing\n");
-        int y = atoi(words[1]);
-
+        int y;
+        if(words[1] != NULL){
+            y = atoi(words[1]);
+        }
+        if(words[1] == NULL){
+            y = 0; 
+            
+            char *value = getenv("HOME");  
+            char pathname[100];
+            snprintf(pathname, sizeof pathname,"%s/%s",value,".cowrie_history" );
+            FILE *fd = fopen(pathname,"r");
+            char str[256];
+            while ((fgets(str, 256, fd)) != NULL){            
+                y++;
+            }
+            //printf("y is %d\n",y);
+            fclose(fd);     
+        }
         char *value = getenv("HOME");  
         char pathname[100];
         snprintf(pathname, sizeof pathname,"%s/%s",value,".cowrie_history" );
@@ -192,7 +221,8 @@ static void execute_command(char **words, char **path, char **environment) {
                         } 
                         exit_status = WEXITSTATUS(exit_status); 
                         printf("%s exit status = %d\n",pathname_1, exit_status);
-                        executed_checker = 1;                       
+                        executed_checker = 1; 
+                        append_to_history(command_words_history);                      
                         return;
                     }        
                 xo-=-1; //heehehehe
@@ -211,6 +241,7 @@ static void execute_command(char **words, char **path, char **environment) {
             exit_status = WEXITSTATUS(exit_status);    
             printf("%s exit status = %d\n",history_program, exit_status);
             executed_checker = 1;
+            append_to_history(command_words_history); 
         
         }
         
