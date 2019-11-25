@@ -18,7 +18,7 @@
 // PUT EXTRA `#include'S HERE
 #include <spawn.h>
 #include <sys/wait.h>
-
+#include <glob.h>
 
 #define MAX_LINE_CHARS 1024
 #define INTERACTIVE_PROMPT "cowrie> "
@@ -81,7 +81,7 @@ int main(void) {
 
         char **command_words = tokenize(line, WORD_SEPARATORS, SPECIAL_CHARS);
         execute_command(command_words, path, environ);
-        free_tokens(command_words);
+        //free_tokens(command_words);
 
     }
 
@@ -108,7 +108,77 @@ static void execute_command(char **words, char **path, char **environment) {
         // nothing to do
         return;
     }
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   
+    // for glob, i think im just gona initially check for anything, if i find matches, strait replace the words string, gota remember to tolkenize thou
+    //glob glob
+    
+    //char new_globbed_string[MAX_LINE_CHARS]; 
+    
+    //char new_line[MAX_LINE_CHARS];
+    //char **new_words[MAX_LINE_CHARS];
+    int b = 0;
+    int already_placed = 0;
+    char *new_words[MAX_LINE_CHARS] ;
+    words = realloc(words, 1000); //does it really matter if we overkill this, for future improments go like sizeof(gl_pathc)
+    
+    //this while loop basically checks makes a new array of words including the shit * is meant to represent (includes NULL at end), still gota push that back onto words thou. 
+    while(words[b]!=NULL){
+        glob_t matches; // holds pattern expansion
+        int result = glob(words[b], GLOB_NOCHECK|GLOB_TILDE, NULL, &matches);
 
+        if (result != 0) {
+           // printf("glob returns %d\n", result);
+        } else {
+            //printf("%d matches\n", (int)matches.gl_pathc);
+            //words = realloc(words, 1000);
+            for (int i = 0; i <= matches.gl_pathc; i++) {
+                //printf("%s\n", matches.gl_pathv[i]);
+                //strcat(new_globbed_string, matches.gl_pathv[i]);
+                //strcat(new_globbed_string, " ");
+                
+                if(i <= matches.gl_pathc){
+                // words = realloc(words, sizeof(matches.gl_pathv[i]));
+                    if(i < matches.gl_pathc){
+                        new_words[already_placed+i] = matches.gl_pathv[i];
+                    }    
+                    if(i == matches.gl_pathc){
+                        already_placed = already_placed + i;
+                    }    
+                }
+                
+            
+            }   
+        }
+        b++ ;  
+    }
+    new_words[already_placed] = NULL ; //adds null to the end of the final string
+    int u = 0;
+
+    //while(new_words[u] != NULL){
+    //    printf("new_words %d is: %s\n",u, new_words[u]);
+    //    u++;
+    //}
+    //printf("\ndoing transfer\n\n");
+    u = 0;
+    while(new_words[u] != NULL){ // copy the new words over to words
+        words[u]=new_words[u];
+        u++;
+    }
+    words[u] = NULL ; //gota null terminated 
+    u = 0;
+    //while(words[u] != NULL){
+    //    printf("words %d is: %s\n",u, words[u]);
+    //    u++;
+    //}
+
+   
+    
+    
+    
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if (strcmp(program, "exit") == 0) {
         do_exit(words);
         append_to_history(words);
@@ -308,6 +378,7 @@ static void execute_command(char **words, char **path, char **environment) {
         fprintf(stderr, "%s: command not found\n", program);
         append_to_history(words);
     }
+    free_tokens(words); // yo we moved it down here cos address gets fucked with realloc
     
 }
 
