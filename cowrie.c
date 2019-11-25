@@ -111,33 +111,21 @@ static void execute_command(char **words, char **path, char **environment) {
         return;
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-   
-    // for glob, i think im just gona initially check for anything, if i find matches, strait replace the words string, gota remember to tolkenize thou
-    //glob glob
-    
-    //char new_globbed_string[MAX_LINE_CHARS]; 
-    
-    //char new_line[MAX_LINE_CHARS];
-    //char **new_words[MAX_LINE_CHARS];
-    
-    //char *old_words[MAX_LINE_CHARS];
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //         GLOBBING    GLOBBING   GLOBBING   GLOBBING   GLOBBING   GLOBBING   GLOBBING  GLOBBING   ///////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     int num_of_origninal_words = 0; //my thinking is check how many words there are now, then after globbing, if there are more after globbing, print the orignial history
-        while(words[num_of_origninal_words] != NULL){
-            //old_words[num_of_origninal_words] = words[num_of_origninal_words];
-            num_of_origninal_words++;
-        }
-    //old_words[num_of_origninal_words] = NULL; //gota null terminate it
-      
-
+    while(words[num_of_origninal_words] != NULL){           
+        num_of_origninal_words++;
+    }
     //so at this point we go the num of original words and a list of the old words
-    
-    
+        
     int b = 0;
     int already_placed = 0;
     char *new_words[MAX_LINE_CHARS];
     
-    words = realloc(words, 1000); //does it really matter if we overkill this, for future improments go like sizeof(gl_pathc)
-    
+    words = realloc(words, 1000); //does it really matter if we overkill this, for future improments go like sizeof(gl_pathc)    
     //this while loop basically checks makes a new array of words including the shit * is meant to represent (includes NULL at end), still gota push that back onto words thou. 
     while(words[b]!=NULL){
         glob_t matches; // holds pattern expansion
@@ -147,12 +135,7 @@ static void execute_command(char **words, char **path, char **environment) {
            // printf("glob returns %d\n", result);
         } else {
             //printf("%d matches\n", (int)matches.gl_pathc);
-            //words = realloc(words, 1000);
             for (int i = 0; i <= matches.gl_pathc; i++) {
-                //printf("%s\n", matches.gl_pathv[i]);
-                //strcat(new_globbed_string, matches.gl_pathv[i]);
-                //strcat(new_globbed_string, " ");
-                
                 if(i <= matches.gl_pathc){
                 // words = realloc(words, sizeof(matches.gl_pathv[i]));
                     if(i < matches.gl_pathc){
@@ -161,9 +144,7 @@ static void execute_command(char **words, char **path, char **environment) {
                     if(i == matches.gl_pathc){
                         already_placed = already_placed + i;
                     }    
-                }
-                
-            
+                }            
             }   
         }
         b++ ;  
@@ -173,28 +154,18 @@ static void execute_command(char **words, char **path, char **environment) {
     if (num_of_origninal_words < already_placed){ // if this goes through, it means shits been added, we want the old thing for history
         append_to_history(words); //the words haven been altered yet so chuck this in history b4 they are
         history_printed = 1;
-    }
-    
-    
-    
+    }    
     int u = 0;
-
-    //while(new_words[u] != NULL){
-    //    printf("new_words %d is: %s\n",u, new_words[u]);
-    //    u++;
-    //}
-    //printf("\ndoing transfer\n\n");
-    u = 0;
     while(new_words[u] != NULL){ // copy the new words over to words
         words[u]=new_words[u];
         u++;
     }
     words[u] = NULL ; //gota null terminated 
-    u = 0;
-    //while(words[u] != NULL){
-    //    printf("words %d is: %s\n",u, words[u]);
-    //    u++;
-    //}
+   /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //         GLOBBING  DONE   GLOBBING DONE  GLOBBING DONE  GLOBBING DONE  GLOBBING  DONE GLOBBING  DONE GLOBBING DONE 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
    
     
@@ -292,10 +263,108 @@ static void execute_command(char **words, char **path, char **environment) {
         //we got the program in specific_history_line
         printf("%s", specific_history_line); //gota print this shit out
         
-        
+        //now before we execute it, we gota glob it 
+        //////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////
         
         
         char **command_words_history = tokenize(specific_history_line, WORD_SEPARATORS, SPECIAL_CHARS); //this is basically words for the history line
+        
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //this realy should be done in a function but ye rip, this globs command_words_history
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        /*
+        int c = 0;
+        int already_placed_H = 0;
+        char *new_words_H[MAX_LINE_CHARS];
+        
+        command_words_history = realloc(command_words_history, 1000); //does it really matter if we overkill this, for future improments go like sizeof(gl_pathc)    
+        //this while loop basically checks makes a new array of words including the shit * is meant to represent (includes NULL at end), still gota push that back onto words thou. 
+        while(command_words_history[c]!=NULL){
+            glob_t matches; // holds pattern expansion
+            int result = glob(command_words_history[c], GLOB_NOCHECK|GLOB_TILDE, NULL, &matches);
+
+            if (result != 0) {
+            // printf("glob returns %d\n", result);
+            } else {
+                //printf("%d matches\n", (int)matches.gl_pathc);
+                for (int i = 0; i <= matches.gl_pathc; i++) {
+                    if(i <= matches.gl_pathc){
+                    // words = realloc(words, sizeof(matches.gl_pathv[i]));
+                        if(i < matches.gl_pathc){
+                            new_words_H[already_placed_H+i] = matches.gl_pathv[i];
+                        }    
+                        if(i == matches.gl_pathc){
+                            already_placed_H = already_placed_H + i;
+                        }    
+                    }            
+                }   
+            }
+            c++ ;  
+        }
+        new_words_H[already_placed_H] = NULL ; //adds null to the end of the final string
+        int q = 0;
+        while(new_words_H[q] != NULL){ // copy the new words over to words
+            command_words_history[q]=new_words_H[q];
+            q++;
+        }
+        command_words_history[u] = NULL ; //gota null terminated 
+        */
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        //globbing done
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         char *history_program = command_words_history[0];
         //printf("history_program is is: %s\n", history_program);
         //printf("normal program is %s\n",program);
