@@ -102,6 +102,8 @@ static void execute_command(char **words, char **path, char **environment) {
     assert(path != NULL);
     assert(environment != NULL);
 
+    
+    
     char *program = words[0];
    
     if (program == NULL) {
@@ -117,9 +119,23 @@ static void execute_command(char **words, char **path, char **environment) {
     
     //char new_line[MAX_LINE_CHARS];
     //char **new_words[MAX_LINE_CHARS];
+    
+    //char *old_words[MAX_LINE_CHARS];
+    int num_of_origninal_words = 0; //my thinking is check how many words there are now, then after globbing, if there are more after globbing, print the orignial history
+        while(words[num_of_origninal_words] != NULL){
+            //old_words[num_of_origninal_words] = words[num_of_origninal_words];
+            num_of_origninal_words++;
+        }
+    //old_words[num_of_origninal_words] = NULL; //gota null terminate it
+      
+
+    //so at this point we go the num of original words and a list of the old words
+    
+    
     int b = 0;
     int already_placed = 0;
-    char *new_words[MAX_LINE_CHARS] ;
+    char *new_words[MAX_LINE_CHARS];
+    
     words = realloc(words, 1000); //does it really matter if we overkill this, for future improments go like sizeof(gl_pathc)
     
     //this while loop basically checks makes a new array of words including the shit * is meant to represent (includes NULL at end), still gota push that back onto words thou. 
@@ -153,6 +169,14 @@ static void execute_command(char **words, char **path, char **environment) {
         b++ ;  
     }
     new_words[already_placed] = NULL ; //adds null to the end of the final string
+    int history_printed = 0;
+    if (num_of_origninal_words < already_placed){ // if this goes through, it means shits been added, we want the old thing for history
+        append_to_history(words); //the words haven been altered yet so chuck this in history b4 they are
+        history_printed = 1;
+    }
+    
+    
+    
     int u = 0;
 
     //while(new_words[u] != NULL){
@@ -228,7 +252,7 @@ static void execute_command(char **words, char **path, char **environment) {
         }
         
         
-        print_history(lines);
+        print_history(lines); //might need to put history_checker here
         executed_checker = 1;
         append_to_history(words);
     }
@@ -267,6 +291,10 @@ static void execute_command(char **words, char **path, char **environment) {
 
         //we got the program in specific_history_line
         printf("%s", specific_history_line); //gota print this shit out
+        
+        
+        
+        
         char **command_words_history = tokenize(specific_history_line, WORD_SEPARATORS, SPECIAL_CHARS); //this is basically words for the history line
         char *history_program = command_words_history[0];
         //printf("history_program is is: %s\n", history_program);
@@ -345,7 +373,9 @@ static void execute_command(char **words, char **path, char **environment) {
                     exit_status = WEXITSTATUS(exit_status); 
                     printf("%s exit status = %d\n",pathname_1, exit_status);
                     executed_checker = 1;
-                    append_to_history(words);
+                    if(history_printed==0){       // if history printed != 0, historying would already have been appended
+                        append_to_history(words);
+                    }    
                     return;
                 }        
             x-=-1; //heehehehe
@@ -371,14 +401,16 @@ static void execute_command(char **words, char **path, char **environment) {
         exit_status = WEXITSTATUS(exit_status);    
         printf("%s exit status = %d\n",program, exit_status);
         executed_checker = 1;
-        append_to_history(words);
+        if(history_printed==0){       // if history printed != 0, historying would already have been appended
+            append_to_history(words);
+        }  
         
     } 
     if (executed_checker == 0) {
         fprintf(stderr, "%s: command not found\n", program);
         append_to_history(words);
     }
-    free_tokens(words); // yo we moved it down here cos address gets fucked with realloc
+    free_tokens(words); // yo we moved it down here cos address gets fucked with realloc so cant do in main
     
 }
 
